@@ -10,14 +10,14 @@ struct no_ {
     NO *proximo;
 };
 
-struct lista_ {
+struct lista_cabeca {
     NO *cabeca;   
     NO *fim;      
     int tamanho;
 };
 
-LISTA *lista_criar(void) {
-    LISTA *lista = malloc(sizeof(LISTA));
+LISTA_CABECA *lista_cabeca_criar(void) {
+    LISTA_CABECA *lista = malloc(sizeof(LISTA_CABECA));
     if (lista == NULL)
         return NULL;
 
@@ -34,7 +34,7 @@ LISTA *lista_criar(void) {
     return lista;
 }
 
-void lista_apagar(LISTA **lista) {
+void lista_cabeca_apagar(LISTA_CABECA **lista) {
     if (lista == NULL || *lista == NULL)
         return;
 
@@ -51,15 +51,15 @@ void lista_apagar(LISTA **lista) {
     *lista = NULL;
 }
 
-bool lista_vazia(const LISTA *lista) {
+bool lista_cabeca_vazia(const LISTA_CABECA *lista) {
     return lista != NULL && lista->cabeca->proximo == NULL;
 }
 
-int lista_tamanho(const LISTA *lista) {
+int lista_cabeca_tamanho(const LISTA_CABECA *lista) {
     return lista != NULL ? lista->tamanho : 0;
 }
 
-bool lista_inserir(LISTA *lista, ITEM *item) {
+bool lista_cabeca_inserir(LISTA_CABECA *lista, ITEM *item) {
     if (lista == NULL || item == NULL)
         return false;
 
@@ -80,7 +80,7 @@ bool lista_inserir(LISTA *lista, ITEM *item) {
     return true;
 }
 
-ITEM *lista_buscar(LISTA *lista, int chave) {
+ITEM *lista_cabeca_buscar(LISTA_CABECA *lista, int chave) {
     if (lista == NULL)
         return NULL;
 
@@ -91,11 +91,10 @@ ITEM *lista_buscar(LISTA *lista, int chave) {
     return NULL;
 }
 
-ITEM *lista_remover(LISTA *lista, int chave) {
+ITEM *lista_cabeca_remover(LISTA_CABECA *lista, int chave) {
     if (lista == NULL)
         return NULL;
 
-    /* Comecar no no-cabeca garante que p sempre seja o antecessor. */
     NO *p = lista->cabeca;
     while (p->proximo != NULL && item_chave(p->proximo->item) != chave)
         p = p->proximo;
@@ -115,7 +114,7 @@ ITEM *lista_remover(LISTA *lista, int chave) {
     return item;
 }
 
-void lista_imprimir(const LISTA *lista) {
+void lista_cabeca_imprimir(const LISTA_CABECA *lista) {
     if (lista == NULL) {
         puts("(lista inexistente)");
         return;
