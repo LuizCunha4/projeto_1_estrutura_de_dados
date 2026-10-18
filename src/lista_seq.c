@@ -1,16 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "lista.h"
+#include "lista_seq.h"
 
-struct lista_ {
+struct lista_ seq{
     ITEM *itens[TAM_MAX];
     int inicio;
     int fim;
     int tamanho;
 };
 
-LISTA *lista_criar(void) {
-    LISTA *lista = malloc(sizeof(LISTA));
+LISTA_SEQ *lista_seq_criar(void) {
+    LISTA_SEQ *lista = malloc(sizeof(LISTA_SEQ));
     if (lista != NULL) {
         lista->inicio = 0;
         lista->fim = 0;
@@ -21,7 +21,7 @@ LISTA *lista_criar(void) {
     return lista;
 }
 
-void lista_apagar(LISTA **lista) {
+void lista_seq_apagar(LISTA_SEQ **lista) {
     if (lista == NULL || *lista == NULL)
         return;
     for (int i = 0; i < (*lista)->fim; i++)
@@ -30,7 +30,7 @@ void lista_apagar(LISTA **lista) {
     *lista = NULL;
 }
 
-bool lista_inserir(LISTA *lista, ITEM *item) {
+bool lista_seq_inserir(LISTA_SEQ *lista, ITEM *item) {
     if (lista == NULL || item == NULL || lista_cheia(lista))
         return false;
     lista->itens[lista->fim] = item;
@@ -39,19 +39,19 @@ bool lista_inserir(LISTA *lista, ITEM *item) {
     return true;
 }
 
-int lista_tamanho(const LISTA *lista) {
+int lista_seq_tamanho(const LISTA_SEQ *lista) {
     return lista == NULL ? 0 : lista->tamanho;
 }
 
-bool lista_vazia(const LISTA *lista) {
+bool lista_seq_vazia(const LISTA_SEQ *lista) {
     return lista == NULL || lista->tamanho == 0;
 }
 
-bool lista_cheia(const LISTA *lista) {
+bool lista_seq_cheia(const LISTA_SEQ *lista) {
     return lista == NULL || lista->tamanho == TAM_MAX;
 }
 
-void lista_imprimir(const LISTA *lista) {
+void lista_seq_imprimir(const LISTA_SEQ *lista) {
     if (lista == NULL)
         return;
     for (int i = lista->inicio; i < lista->fim; i++) {
