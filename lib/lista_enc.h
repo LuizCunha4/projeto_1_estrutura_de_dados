@@ -1,44 +1,23 @@
-#ifndef LISTA_H
-#define LISTA_H
+#ifndef LISTA_ENC_H
+#define LISTA_ENC_H
 
 #include <stdbool.h>
 #include "item.h"
 
-typedef struct lista_ LISTA;
+typedef struct lista_enc LISTA_ENC;
 
-LISTA *lista_criar(bool ordenada);
-void lista_apagar(LISTA **lista);
-bool lista_inserir(LISTA *lista, ITEM *item);
-ITEM *lista_busca(const LISTA *lista, int chave);
-ITEM *lista_remover(LISTA *lista, int chave);
-int lista_tamanho(const LISTA *lista);
-bool lista_vazia(const LISTA *lista);
-bool lista_cheia(const LISTA *lista);
-void lista_imprimir(const LISTA *lista);
-bool lista_inserir_inicio(LISTA *lista, ITEM *item);
-bool lista_inserir_fim(LISTA *lista, ITEM *item);
-void lista_imprimir_reversa(const LISTA *lista);
-
-#endif
-#ifndef LISTA_H
-#define LISTA_H
-
-#include <stdbool.h>
-#include "item.h"
-
-typedef struct lista_ LISTA;
-
-LISTA *lista_criar(bool ordenada);
-void lista_apagar(LISTA **lista);
-bool lista_inserir(LISTA *lista, ITEM *item);
-ITEM *lista_busca(const LISTA *lista, int chave);
-ITEM *lista_remover(LISTA *lista, int chave);
-int lista_tamanho(const LISTA *lista);
-bool lista_vazia(const LISTA *lista);
-bool lista_cheia(const LISTA *lista);
-void lista_imprimir(const LISTA *lista);
-bool lista_inserir_inicio(LISTA *lista, ITEM *item);
-bool lista_inserir_fim(LISTA *lista, ITEM *item);
-void lista_imprimir_reversa(const LISTA *lista);
+LISTA_ENC *lista_enc_criar(bool ordenada);
+void lista_enc_apagar(LISTA_ENC **lista);
+bool lista_enc_inserir(LISTA_ENC *lista, ITEM *item);
+ITEM *lista_enc_busca(const LISTA_ENC *lista, int chave);
+ITEM *lista_enc_remover(LISTA_ENC *lista, int chave);
+int lista_enc_tamanho(const LISTA_ENC *lista);
+bool lista_enc_vazia(const LISTA_ENC *lista);
+bool lista_enc_cheia(const LISTA_ENC *lista);
+void lista_enc_imprimir(const LISTA_ENC *lista);
+bool lista_enc_inserir_inicio(LISTA_ENC *lista, ITEM *item);
+bool lista_enc_inserir_fim(LISTA_ENC *lista, ITEM *item);
+void lista_enc_imprimir_reversa(const LISTA_ENC *lista);
 
 #endif
+
