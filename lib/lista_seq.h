@@ -1,19 +1,19 @@
-#ifndef LISTA_H
-#define LISTA_H
+#ifndef LISTA_SEQ_H
+#define LISTA_SEQ_H
 
 #include <stdbool.h>
 #include "item.h"
 
 #define TAM_MAX 10
 
-typedef struct lista_ LISTA;
+typedef struct lista_seq LISTA_SEQ;
 
-LISTA *lista_criar(void);
-void lista_apagar(LISTA **lista);
-bool lista_inserir(LISTA *lista, ITEM *item);
-int lista_tamanho(const LISTA *lista);
-bool lista_vazia(const LISTA *lista);
-bool lista_cheia(const LISTA *lista);
-void lista_imprimir(const LISTA *lista);
+LISTA_SEQ *lista_seq_criar(void);
+void lista_seq_apagar(LISTA_SEQ **lista);
+bool lista_seq_inserir(LISTA_SEQ *lista, ITEM *item);
+int lista_seq_tamanho(const LISTA_SEQ *lista);
+bool lista_seq_vazia(const LISTA_SEQ *lista);
+bool lista_seq_cheia(const LISTA_SEQ *lista);
+void lista_seq_imprimir(const LISTA_SEQ *lista);
 
 #endif
