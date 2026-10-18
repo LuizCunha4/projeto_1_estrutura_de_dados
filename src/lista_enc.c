@@ -1,4 +1,4 @@
-#include "lista.h"
+#include "lista_enc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,7 +11,7 @@ struct no_ {
     NO *proximo;
 };
 
-struct lista_ {
+struct lista_enc {
     NO *inicio;
     NO *fim;
     int tamanho;
@@ -28,7 +28,7 @@ static NO *no_criar(ITEM *item) {
     return novo;
 }
 
-static void ligar_entre(LISTA *lista, NO *anterior, NO *novo, NO *proximo) {
+static void ligar_entre(LISTA_ENC *lista, NO *anterior, NO *novo, NO *proximo) {
     novo->anterior = anterior;
     novo->proximo = proximo;
 
@@ -45,7 +45,7 @@ static void ligar_entre(LISTA *lista, NO *anterior, NO *novo, NO *proximo) {
     lista->tamanho++;
 }
 
-static bool inserir_ordenado(LISTA *lista, ITEM *item) {
+static bool inserir_ordenado(LISTA_ENC *lista, ITEM *item) {
     NO *novo = no_criar(item);
     if (novo == NULL)
         return false;
@@ -61,8 +61,8 @@ static bool inserir_ordenado(LISTA *lista, ITEM *item) {
     return true;
 }
 
-LISTA *lista_criar(bool ordenada) {
-    LISTA *lista = malloc(sizeof(LISTA));
+LISTA *lista_enc_criar(bool ordenada) {
+    LISTA_ENC *lista = malloc(sizeof(LISTA_ENC));
     if (lista == NULL)
         return NULL;
 
@@ -73,7 +73,7 @@ LISTA *lista_criar(bool ordenada) {
     return lista;
 }
 
-void lista_apagar(LISTA **lista) {
+void lista_enc_apagar(LISTA_ENC **lista) {
     if (lista == NULL || *lista == NULL)
         return;
 
@@ -89,7 +89,7 @@ void lista_apagar(LISTA **lista) {
     *lista = NULL;
 }
 
-bool lista_inserir_inicio(LISTA *lista, ITEM *item) {
+bool lista_enc_inserir_inicio(LISTA_ENC *lista, ITEM *item) {
     if (lista == NULL || item == NULL || lista->ordenada)
         return false;
 
@@ -101,7 +101,7 @@ bool lista_inserir_inicio(LISTA *lista, ITEM *item) {
     return true;
 }
 
-bool lista_inserir_fim(LISTA *lista, ITEM *item) {
+bool lista_enc_inserir_fim(LISTA_ENC *lista, ITEM *item) {
     if (lista == NULL || item == NULL || lista->ordenada)
         return false;
 
@@ -113,17 +113,17 @@ bool lista_inserir_fim(LISTA *lista, ITEM *item) {
     return true;
 }
 
-bool lista_inserir(LISTA *lista, ITEM *item) {
+bool lista_enc_inserir(LISTA_ENC *lista, ITEM *item) {
     if (lista == NULL || item == NULL)
         return false;
 
     if (lista->ordenada)
         return inserir_ordenado(lista, item);
 
-    return lista_inserir_fim(lista, item);
+    return lista_enc_inserir_fim(lista, item);
 }
 
-ITEM *lista_busca(const LISTA *lista, int chave) {
+ITEM *lista_enc_busca(const LISTA_ENC *lista, int chave) {
     if (lista == NULL)
         return NULL;
 
@@ -139,7 +139,7 @@ ITEM *lista_busca(const LISTA *lista, int chave) {
     return NULL;
 }
 
-ITEM *lista_remover(LISTA *lista, int chave) {
+ITEM *lista_enc_remover(LISTA_ENC *lista, int chave) {
     if (lista == NULL)
         return NULL;
 
@@ -174,21 +174,20 @@ ITEM *lista_remover(LISTA *lista, int chave) {
     return item;
 }
 
-int lista_tamanho(const LISTA *lista) {
+int lista_enc_tamanho(const LISTA_ENC *lista) {
     return lista != NULL ? lista->tamanho : 0;
 }
 
-bool lista_vazia(const LISTA *lista) {
+bool lista_enc_vazia(const LISTA_ENC *lista) {
     return lista != NULL && lista->inicio == NULL;
 }
 
-bool lista_cheia(const LISTA *lista) {
+bool lista_enc_cheia(const LISTA_ENC *lista) {
     (void)lista;
-    /* A lista nao possui capacidade fixa; malloc sinaliza falta de memoria. */
     return false;
 }
 
-void lista_imprimir(const LISTA *lista) {
+void lista_enc_imprimir(const LISTA_ENC *lista) {
     if (lista == NULL) {
         printf("<lista inexistente>\n");
         return;
@@ -202,7 +201,7 @@ void lista_imprimir(const LISTA *lista) {
     printf("NULL\n");
 }
 
-void lista_imprimir_reversa(const LISTA *lista) {
+void lista_enc_imprimir_reversa(const LISTA_ENC *lista) {
     if (lista == NULL) {
         printf("<lista inexistente>\n");
         return;
