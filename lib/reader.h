@@ -1,12 +1,9 @@
 #ifndef READER_H
 #define READER_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
 #include "item.h"
 
-int ler_item(FILE* arquivo, ITEM* item);
+//Ps Luiz (ou Rizziolli) do futuro: retorna um ponteiro para um vetor com todos os itens do arquivo 
+ITEM** reader_ler_todos(const char *caminho_arquivo, int *total_lidos, char **cabecalho_out);
 
 #endif
