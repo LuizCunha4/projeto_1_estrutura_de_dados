@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "cli.h"
+#include "cliente.h"
 
 Opcoes parse_args(int argc, char *argv[]) {
     Opcoes opts = {0}; 
