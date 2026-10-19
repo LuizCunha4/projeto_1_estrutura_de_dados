@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-#ifndef ITEM_H
-#define ITEM_H
-
-typedef struct item ITEM;
-
-#endif 
-=======
 #ifndef ITEM_H
 #define ITEM_H
 
@@ -21,4 +13,3 @@ void item_apagar(ITEM** item);
 void item_escrever_csv(ITEM* item);
 
 #endif 
->>>>>>> a0de4d175a37e5f744049109f80c6a7ee0ed20a3
