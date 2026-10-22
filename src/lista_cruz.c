@@ -136,7 +136,7 @@ void lista_cruz_imprimir_linha(const LISTA_CRUZ *lista, int linha) {
     for (const NO *no = lista->inicio_linha[linha]; no != NULL; no = no->prox_linha) {
         if (no != lista->inicio_linha[linha])
             printf(" ");
-        item_imprimir(no->item);
+        item_escrever_csv(no->item, stdout);
     }
     printf("\n");
 }
@@ -148,7 +148,7 @@ void lista_cruz_imprimir_coluna(const LISTA_CRUZ *lista, int coluna) {
     for (const NO *no = lista->inicio_coluna[coluna]; no != NULL; no = no->prox_coluna) {
         if (no != lista->inicio_coluna[coluna])
             printf(" ");
-        item_imprimir(no->item);
+        item_escrever_csv(no->item, stdout);
     }
     printf("\n");
 }

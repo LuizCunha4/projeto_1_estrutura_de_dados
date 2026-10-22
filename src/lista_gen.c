@@ -159,7 +159,7 @@ void lista_gen_imprimir(const LISTA_GEN *lista) {
     printf("(");
     for (const NO *no = lista->inicio; no != NULL; no = no->proximo) {
         if (no->tipo == NO_ATOMO)
-            item_imprimir(no->info.atomo);
+            item_escrever_csv(no->info.atomo, stdout);
         else
             lista_gen_imprimir(no->info.sublista);
 

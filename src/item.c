@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 
 struct esquema {
     size_t quantidade;
@@ -141,6 +142,7 @@ void item_apagar(ITEM **item) {
     *item = NULL;
 }
 
+
 const ESQUEMA *item_esquema(const ITEM *item) {
     return item != NULL ? item->esquema : NULL;
 }
@@ -198,4 +200,5 @@ bool item_definir_original(ITEM *item, const char *original) {
 
 const char *item_original(const ITEM *item) {
     return item != NULL ? item->original : NULL;
+
 }

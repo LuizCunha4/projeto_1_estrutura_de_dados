@@ -54,6 +54,7 @@ ITEM *item_criar(const ESQUEMA *esquema);
 /* Libera textos, vetor e item; nao libera esquema. Aceita NULL e zera *item.
  * Todas as referencias ao registro ficam invalidas apos esta chamada. */
 void item_apagar(ITEM **item);
+
 const ESQUEMA *item_esquema(const ITEM *item);
 size_t item_quantidade(const ITEM *item);
 /* Retorno emprestado; nao modificar/liberar. Texto pode ser invalidado por
@@ -66,6 +67,7 @@ const CAMPO *item_campo(const ITEM *item, size_t indice);
  * a organizacao das estruturas que referenciam o registro. */
 bool item_definir_campo(ITEM *item, size_t indice, const CAMPO *campo);
 bool item_marcar_ausente(ITEM *item, size_t indice);
+
 
 /* Copia opcional de texto original, pertencente ao ITEM. Nao interpreta CSV.
  * NULL remove a copia; falha de alocacao preserva a anterior. Qualquer
