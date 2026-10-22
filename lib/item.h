@@ -67,6 +67,14 @@ const CAMPO *item_campo(const ITEM *item, size_t indice);
 bool item_definir_campo(ITEM *item, size_t indice, const CAMPO *campo);
 bool item_marcar_ausente(ITEM *item, size_t indice);
 
+/* Copia opcional de texto original, pertencente ao ITEM. Nao interpreta CSV.
+ * NULL remove a copia; falha de alocacao preserva a anterior. Qualquer
+ * definicao bem-sucedida de campo (inclusive ausencia) invalida a copia.
+ * Definir somente depois de preencher todos os campos. */
+bool item_definir_original(ITEM *item, const char *original);
+/* Emprestado; valido ate alterar campo/original ou apagar o ITEM. */
+const char *item_original(const ITEM *item);
+
 /* Interpretacao/exportacao CSV pertencem ao leitor/modulo CSV.
  * Valores tipados nao preservam, sozinhos, a representacao original do CSV. */
 #endif

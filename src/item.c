@@ -12,6 +12,7 @@ struct esquema {
 struct item {
     const ESQUEMA *esquema; /* Emprestado; deve sobreviver ao item. */
     CAMPO *campos;          /* Vetor e textos pertencem ao item. */
+    char *original;        /* Copia opcional; invalidada ao alterar campos. */
 };
 
 static bool tipo_valido(TIPO_CAMPO tipo) {
@@ -112,6 +113,7 @@ ITEM *item_criar(const ESQUEMA *esquema) {
         return NULL;
     }
     item->esquema = esquema;
+    item->original = NULL;
     for (size_t i = 0; i < esquema->quantidade; i++) {
         item->campos[i].tipo = esquema->colunas[i].tipo;
         item->campos[i].ausente = true;
@@ -134,6 +136,7 @@ void item_apagar(ITEM **item) {
     for (size_t i = 0; i < (*item)->esquema->quantidade; i++)
         campo_limpar(&(*item)->campos[i]);
     free((*item)->campos);
+    free((*item)->original);
     free(*item);
     *item = NULL;
 }
@@ -170,6 +173,8 @@ bool item_definir_campo(ITEM *item, size_t indice, const CAMPO *campo) {
     }
     campo_limpar(&item->campos[indice]);
     item->campos[indice] = novo;
+    free(item->original);
+    item->original = NULL;
     return true;
 }
 
@@ -177,5 +182,20 @@ bool item_marcar_ausente(ITEM *item, size_t indice) {
     if (item == NULL || indice >= item->esquema->quantidade)
         return false;
     campo_limpar(&item->campos[indice]);
+    free(item->original);
+    item->original = NULL;
     return true;
+}
+
+bool item_definir_original(ITEM *item, const char *original) {
+    if (item == NULL) return false;
+    char *copia = original != NULL ? copiar_texto(original) : NULL;
+    if (original != NULL && copia == NULL) return false;
+    free(item->original);
+    item->original = copia;
+    return true;
+}
+
+const char *item_original(const ITEM *item) {
+    return item != NULL ? item->original : NULL;
 }
