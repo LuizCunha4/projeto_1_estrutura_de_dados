@@ -142,43 +142,7 @@ void item_apagar(ITEM **item) {
     *item = NULL;
 }
 
-<<<<<<< HEAD
-int item_chave(const ITEM *item) {
-    return item == NULL ? 0 : (int)strtol(item->asteroid_designation, NULL, 10);
-}
 
-int item_get_chave(const ITEM *item) {
-    return item_chave(item);
-}
-
-void item_escrever_csv(const ITEM *item, FILE *arquivo) {
-    if (item == NULL || arquivo == NULL) {
-        return;
-    }
-
-    fprintf(arquivo,
-            "%s,%s,%s,%d,%d,%.6f,%.6f,%.6f,%d,%d,%d,%.6f,%d,%s,%s,%d,%.6f,%.6f,%.6f,%.6f\n",
-            item->asteroid_designation,
-            item->asteroid_fullname,
-            item->close_approach_date,
-            item->year,
-            item->month,
-            item->distance_au,
-            item->velocity_km_s,
-            item->absolute_magnitude,
-            item->days_until_approach,
-            item->is_past_event,
-            item->is_future_event,
-            item->risk_score,
-            item->panic_level,
-            item->threat_category,
-            item->panic_verdict,
-            item->on_sentry_list,
-            item->sentry_impact_prob,
-            item->sentry_torino_scale,
-            item->sentry_palermo_scale,
-            item->sentry_diameter_km);
-=======
 const ESQUEMA *item_esquema(const ITEM *item) {
     return item != NULL ? item->esquema : NULL;
 }
@@ -236,5 +200,5 @@ bool item_definir_original(ITEM *item, const char *original) {
 
 const char *item_original(const ITEM *item) {
     return item != NULL ? item->original : NULL;
->>>>>>> 15081ee37aaae5b4e978c8ddfb9fc543616d5736
+
 }
