@@ -51,7 +51,7 @@ bool esquema_buscar(const ESQUEMA *esquema, const char *nome, size_t *indice);
  * RESULTADOS apenas referenciam registros: nao devem chamar item_apagar.
  * Ordem de liberacao: resultados, registros da base, esquema compartilhado. */
 ITEM *item_criar(const ESQUEMA *esquema);
-/* Libera textos, vetor e item; nao libera esquema. Aceita NULL e zera *item.
+/* Libera textos, vetor e item; nao libera o esquema. Aceita NULL e zera *item.
  * Todas as referencias ao registro ficam invalidas apos esta chamada. */
 void item_apagar(ITEM **item);
 

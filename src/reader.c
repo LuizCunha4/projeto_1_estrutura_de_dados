@@ -12,20 +12,20 @@ struct reader {
     char delimitador;
     ESQUEMA *esquema;
     CSV_REGISTRO *cabecalho;
-    const READER_COLUNA *colunas; /* Descritor estatico do leitor especifico. */
+    const READER_COLUNA *descritores; /* Descritores estaticos do leitor. */
     size_t quantidade;
     READER_STATUS estado;
 };
 
 READER *reader_criar_interno(FILE *arquivo, char delimitador,
-                           const READER_COLUNA *colunas, size_t quantidade) {
-    if (!arquivo || !colunas || !quantidade || quantidade > SIZE_MAX / sizeof(COLUNA))
+                           const READER_COLUNA *descritores, size_t quantidade) {
+    if (!arquivo || !descritores || !quantidade || quantidade > SIZE_MAX / sizeof(COLUNA))
         return NULL;
     READER *r = calloc(1, sizeof(*r));
     if (!r) return NULL;
     r->arquivo = arquivo;
     r->delimitador = delimitador;
-    r->colunas = colunas;
+    r->descritores = descritores;
     r->quantidade = quantidade;
     r->estado = READER_OK;
     if (csv_ler(arquivo, delimitador, &r->cabecalho) != CSV_OK)
@@ -34,11 +34,11 @@ READER *reader_criar_interno(FILE *arquivo, char delimitador,
     COLUNA *temporarias = malloc(quantidade * sizeof(*temporarias));
     if (!temporarias) goto falha;
     for (size_t i = 0; i < quantidade; ++i) {
-        if (strcmp(r->cabecalho->campos[i], colunas[i].entrada) != 0) {
+        if (strcmp(r->cabecalho->campos[i], descritores[i].entrada) != 0) {
             free(temporarias);
             goto falha;
         }
-        temporarias[i] = (COLUNA){colunas[i].nome, colunas[i].tipo};
+        temporarias[i] = (COLUNA){descritores[i].nome, descritores[i].tipo};
     }
     r->esquema = esquema_criar(temporarias, quantidade);
     free(temporarias); /* esquema_criar copia os nomes. */
@@ -114,9 +114,9 @@ READER_STATUS reader_ler(READER *r, ITEM **saida) {
     item = item_criar(r->esquema);
     if (!item) goto falha;
     for (size_t i = 0; i < r->quantidade; ++i) {
-        /* Converter segundo o esquema; ITEM copia os textos temporarios. */
+        /* Converter segundo o descritor; ITEM copia os textos temporarios. */
         CAMPO campo;
-        if (!converter(csv->campos[i], &r->colunas[i], &campo) ||
+        if (!converter(csv->campos[i], &r->descritores[i], &campo) ||
             !item_definir_campo(item, i, &campo)) goto falha;
     }
     if (!item_definir_original(item, csv->original)) goto falha;

@@ -15,7 +15,7 @@ READER *reader_empresas_criar(FILE *arquivo);
 
 /* Entrega um item por chamada; exige saida != NULL e *saida == NULL.
  * Em sucesso, o chamador possui o ITEM (e deve apaga-lo se a base rejeitar
- * sua insercao). O reader possui somente esquema e cabecalho CSV.
+ * sua insercao). O reader possui somente o esquema e o cabecalho CSV.
  * EOF e erro sao distintos e persistentes; erros nao permitem continuar.
  * Conversoes numericas exigem LC_NUMERIC="C" (padrao inicial de C).
  * Entradas invalidas da API retornam erro sem consumir o stream. */
@@ -36,7 +36,7 @@ bool reader_escrever_cabecalho(const READER *reader, FILE *saida);
 bool reader_escrever_item(const READER *reader, FILE *saida, const ITEM *item);
 
 /* Nao libera ITEMs nem fecha FILE. Manter reader vivo ate TODOS os itens
- * serem liberados: eles referenciam seu esquema. Ordem: resultados, itens
+ * serem liberados: eles referenciam o esquema. Ordem: resultados, itens
  * da base, reader, FILE. O cabecalho e liberado aqui; cada ITEM libera seu original. */
 void reader_apagar(READER **reader);
 #endif

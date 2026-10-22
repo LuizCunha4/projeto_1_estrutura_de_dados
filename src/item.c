@@ -1,7 +1,6 @@
 #include "item.h"
 
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -130,7 +129,7 @@ static void campo_limpar(CAMPO *campo) {
     campo->ausente = true;
 }
 
-/*Quem gerencia o dataset deve apagar o esquema depois de todos os itens.*/
+/* Quem gerencia o dataset deve apagar o esquema depois de todos os itens. */
 void item_apagar(ITEM **item) {
     if (item == NULL || *item == NULL)
         return;
