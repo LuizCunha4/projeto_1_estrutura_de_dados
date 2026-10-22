@@ -27,6 +27,8 @@ ITEM *item_criar(const char *asteroid_designation,
                  double sentry_diameter_km);
 
 void item_apagar(ITEM **item);
+int item_chave(const ITEM *item);
+int item_get_chave(const ITEM *item);
 void item_escrever_csv(const ITEM *item, FILE *arquivo);
 
 #endif

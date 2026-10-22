@@ -123,7 +123,7 @@ void lista_cabeca_imprimir(const LISTA_CABECA *lista) {
     printf("cabeca -> ");
     const NO *p = lista->cabeca->proximo;
     while (p != NULL) {
-        item_imprimir(p->item);
+        item_escrever_csv(p->item, stdout);
         printf(" -> ");
         p = p->proximo;
     }

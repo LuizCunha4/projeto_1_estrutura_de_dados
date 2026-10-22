@@ -61,7 +61,7 @@ static bool inserir_ordenado(LISTA_ENC *lista, ITEM *item) {
     return true;
 }
 
-LISTA *lista_enc_criar(bool ordenada) {
+LISTA_ENC *lista_enc_criar(bool ordenada) {
     LISTA_ENC *lista = malloc(sizeof(LISTA_ENC));
     if (lista == NULL)
         return NULL;
@@ -195,7 +195,7 @@ void lista_enc_imprimir(const LISTA_ENC *lista) {
 
     printf("inicio -> ");
     for (const NO *p = lista->inicio; p != NULL; p = p->proximo) {
-        item_imprimir(p->item);
+        item_escrever_csv(p->item, stdout);
         printf(" <-> ");
     }
     printf("NULL\n");
@@ -209,7 +209,7 @@ void lista_enc_imprimir_reversa(const LISTA_ENC *lista) {
 
     printf("fim -> ");
     for (const NO *p = lista->fim; p != NULL; p = p->anterior) {
-        item_imprimir(p->item);
+        item_escrever_csv(p->item, stdout);
         printf(" <-> ");
     }
     printf("NULL\n");

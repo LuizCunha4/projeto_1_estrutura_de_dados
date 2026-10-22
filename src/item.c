@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "item.h"
 
@@ -94,6 +95,14 @@ void item_apagar(ITEM **item) {
 
     free(*item);
     *item = NULL;
+}
+
+int item_chave(const ITEM *item) {
+    return item == NULL ? 0 : (int)strtol(item->asteroid_designation, NULL, 10);
+}
+
+int item_get_chave(const ITEM *item) {
+    return item_chave(item);
 }
 
 void item_escrever_csv(const ITEM *item, FILE *arquivo) {
