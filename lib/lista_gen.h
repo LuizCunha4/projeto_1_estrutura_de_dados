@@ -9,6 +9,9 @@ typedef struct lista_gen_ LISTA_GEN;
 
 LISTA_GEN *lista_gen_criar(void);
 void lista_gen_apagar(LISTA_GEN **lista);
+/* Pode reconfigurar uma lista vazia. A nova configuração é copiada e substitui
+ * a anterior somente após alocação bem-sucedida; campos devem existir nos
+ * itens inseridos e não devem ser alterados enquanto estiverem agrupados. */
 bool lista_gen_configurar_grupos(LISTA_GEN *lista, const size_t *campos,
                                  size_t quantidade);
 

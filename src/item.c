@@ -13,6 +13,7 @@ struct item {
     const ESQUEMA *esquema; /* Emprestado; deve sobreviver ao item. */
     CAMPO *campos;          /* Vetor e textos pertencem ao item. */
     char *original;        /* Copia opcional; invalidada ao alterar campos. */
+    const void *base_dona; /* Token da BASE que recebeu o item. */
 };
 
 static bool tipo_valido(TIPO_CAMPO tipo) {
@@ -114,6 +115,7 @@ ITEM *item_criar(const ESQUEMA *esquema) {
     }
     item->esquema = esquema;
     item->original = NULL;
+    item->base_dona = NULL;
     for (size_t i = 0; i < esquema->quantidade; i++) {
         item->campos[i].tipo = esquema->colunas[i].tipo;
         item->campos[i].ausente = true;
@@ -144,6 +146,17 @@ void item_apagar(ITEM **item) {
 
 const ESQUEMA *item_esquema(const ITEM *item) {
     return item != NULL ? item->esquema : NULL;
+}
+
+bool item_reservar_base(ITEM *item, const void *base) {
+    if (item == NULL || base == NULL || item->base_dona != NULL) return false;
+    item->base_dona = base;
+    return true;
+}
+
+void item_liberar_base(ITEM *item, const void *base) {
+    if (item != NULL && base != NULL && item->base_dona == base)
+        item->base_dona = NULL;
 }
 
 size_t item_quantidade(const ITEM *item) {

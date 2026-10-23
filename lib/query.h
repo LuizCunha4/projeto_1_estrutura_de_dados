@@ -44,6 +44,9 @@ typedef struct query QUERY;
  * GROUP|campo|campo; CROSS|campo|campo. */
 bool query_ler(FILE *arquivo, const ESQUEMA *esquema, QUERY **saida);
 void query_liberar(QUERY **query);
+/* Esquema emprestado; permanece válido enquanto a QUERY existir e deve ser
+ * idêntico ao esquema dos itens avaliados/ordenados por ela. */
+const ESQUEMA *query_esquema(const QUERY *query);
 
 /* Retorna as instruções na ordem do arquivo; os argumentos são emprestados e
  * permanecem válidos até query_liberar. */

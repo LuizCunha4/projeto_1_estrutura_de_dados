@@ -18,6 +18,7 @@ struct lista_gen_ {
     size_t *campos;
     size_t n_campos;
     bool dono_campos;
+    const ESQUEMA *esquema;
 };
 
 LISTA_GEN *lista_gen_criar(void) { return calloc(1, sizeof(LISTA_GEN)); }
@@ -36,12 +37,14 @@ bool lista_gen_configurar_grupos(LISTA_GEN *l,const size_t *campos,size_t n) {
     if(l==NULL||campos==NULL||n<2||l->quantidade!=0||n>SIZE_MAX/sizeof(*campos)) return false;
     size_t *c=malloc(n*sizeof(*c)); if(c==NULL)return false;
     for(size_t i=0;i<n;i++)c[i]=campos[i];
+    if(l->dono_campos)free(l->campos);
     l->campos=c;l->n_campos=n;l->dono_campos=true;return true;
 }
 
 static LISTA_GEN *filha_criar(const LISTA_GEN *pai) {
     LISTA_GEN *f=lista_gen_criar(); if(f==NULL)return NULL;
     f->campos=pai->campos; f->n_campos=pai->n_campos;
+    f->esquema=pai->esquema;
     f->profundidade=pai->profundidade+1; return f;
 }
 
@@ -50,19 +53,30 @@ static NO *novo_no(enum tipo_no tipo,ITEM *item) {
 }
 static void anexar(LISTA_GEN*l,NO*n){if(l->fim)l->fim->proximo=n;else l->inicio=n;l->fim=n;++l->quantidade;}
 
-bool lista_gen_inserir_atomo(LISTA_GEN *l,ITEM *item) {
+static bool inserir_rec(LISTA_GEN *l,ITEM *item) {
     if(l==NULL||item==NULL)return false;
     if(l->profundidade<l->n_campos){
         size_t campo=l->campos[l->profundidade];
         for(NO*n=l->inicio;n;n=n->proximo) if(n->tipo==NO_GRUPO&&n->item!=NULL&&item_comparar_campo(n->item,item,campo)==0)
-            return lista_gen_inserir_atomo(n->sublista,item);
+            return inserir_rec(n->sublista,item);
         LISTA_GEN *sub=filha_criar(l);if(sub==NULL)return false;
         NO*n=novo_no(NO_GRUPO,item);if(n==NULL){lista_gen_apagar(&sub);return false;}
         n->sublista=sub;
-        if(!lista_gen_inserir_atomo(sub,item)){free(n);lista_gen_apagar(&sub);return false;}
+        if(!inserir_rec(sub,item)){free(n);lista_gen_apagar(&sub);return false;}
         anexar(l,n);return true;
     }
     NO*n=novo_no(NO_ATOMO,item);if(n==NULL)return false;anexar(l,n);return true;
+}
+
+bool lista_gen_inserir_atomo(LISTA_GEN *l,ITEM *item) {
+    if(l==NULL||item==NULL||(l->esquema&&l->esquema!=item_esquema(item)))return false;
+    for(size_t i=0;i<l->n_campos;i++)
+        if(item_campo(item,l->campos[i])==NULL)return false;
+    const ESQUEMA *anterior=l->esquema;
+    if(!l->esquema)l->esquema=item_esquema(item);
+    if(inserir_rec(l,item))return true;
+    l->esquema=anterior;
+    return false;
 }
 
 LISTA_GEN *lista_gen_inserir_sublista(LISTA_GEN *l) {

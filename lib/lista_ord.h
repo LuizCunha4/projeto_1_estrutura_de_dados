@@ -8,6 +8,9 @@
 typedef struct lista_ord LISTA_ORD;
 typedef int (*LISTA_ORD_COMPARADOR)(const ITEM *a, const ITEM *b,
                                     void *contexto);
+/* Os campos usados na ordenação (ou pelo comparador) devem permanecer
+ * estáveis enquanto os itens estiverem na lista. O contexto do comparador é
+ * emprestado e deve sobreviver até a lista ser apagada ou reconfigurada. */
 
 LISTA_ORD *lista_ord_criar(void);
 void lista_ord_apagar(LISTA_ORD **lista);

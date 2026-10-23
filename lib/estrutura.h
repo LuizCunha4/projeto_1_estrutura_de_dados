@@ -8,12 +8,19 @@
 typedef struct estrutura ESTRUTURA;
 typedef enum { ESTRUTURA_BASE, ESTRUTURA_RESULTADOS } ESTRUTURA_PAPEL;
 
-/* Fachada comum para os oito TADs. Em ESTRUTURA_BASE, inserção bem-sucedida
- * transfere a propriedade lógica do ITEM para a estrutura; em RESULTADOS,
- * ela apenas armazena uma referência. A destruição libera os registros da
- * base e somente os nós da estrutura de resultados. Remover da base transfere
- * o ITEM ao chamador; remover de resultados retorna uma referência emprestada.
- * Se a estrutura for lista_ord com ORDER, manter QUERY viva até destruí-la. */
+/* Fachada comum para os oito TADs. Um ITEM só pode pertencer a uma BASE e
+ * ocorrer uma vez nela. Inserção repetida ou em outra BASE falha sem alterar
+ * a propriedade. Inserção bem-sucedida transfere a propriedade lógica do ITEM
+ * para BASE; em RESULTADOS, apenas armazena uma referência. A destruição
+ * libera os registros da base e somente os nós da estrutura de resultados.
+ * Remover da base transfere o ITEM ao chamador; remover de resultados retorna
+ * uma referência emprestada.
+ * O esquema dos itens deve ser o mesmo ponteiro usado pela QUERY (se houver)
+ * e por todos os itens já inseridos. GROUP/CROSS exigem índices existentes;
+ * sem consulta, seus campos padrão são 0 e 1. Não altere campos usados por
+ * ORDER/GROUP/CROSS enquanto itens participarem dessas estruturas; ORDER por
+ * similarity também depende dos campos SIM. Se a
+ * estrutura for lista_ord com ORDER, manter QUERY viva até destruí-la. */
 ESTRUTURA *estrutura_criar(const char *nome, ESTRUTURA_PAPEL papel,
                            const QUERY *query);
 bool estrutura_inserir(ESTRUTURA *estrutura, ITEM *item);

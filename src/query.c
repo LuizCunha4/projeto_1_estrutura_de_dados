@@ -217,6 +217,10 @@ void query_liberar(QUERY **query) {
     *query = NULL;
 }
 
+const ESQUEMA *query_esquema(const QUERY *query) {
+    return query != NULL ? query->esquema : NULL;
+}
+
 static bool query_anexar(QUERY *query,
                             INSTRUCAO *instrucao) {
     if (query->quantidade >= SIZE_MAX / sizeof(*query->instrucoes))

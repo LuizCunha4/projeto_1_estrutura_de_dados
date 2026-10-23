@@ -9,7 +9,7 @@ typedef struct item_no ITEM_NO;
 struct item_no { ITEM *item; ITEM_NO *proximo, *hash_proximo; };
 struct celula { GRUPO *linha, *coluna; CELULA *prox_linha, *prox_coluna; ITEM_NO *itens; };
 struct grupo { ITEM *representante; CELULA *celulas; GRUPO *proximo; size_t quantidade; };
-struct lista_cruz_ { size_t campo_linha,campo_coluna,tamanho,cap_hash; GRUPO *linhas,*colunas; ITEM_NO **hash; };
+struct lista_cruz_ { size_t campo_linha,campo_coluna,tamanho,cap_hash; const ESQUEMA *esquema; GRUPO *linhas,*colunas; ITEM_NO **hash; };
 
 static size_t hash_item(const LISTA_CRUZ*l,const ITEM*i){return (((uintptr_t)i>>4)^((uintptr_t)i>>13))%l->cap_hash;}
 static ITEM_NO *achar_hash(const LISTA_CRUZ*l,const ITEM*i){if(!l||!i)return NULL;for(ITEM_NO*n=l->hash[hash_item(l,i)];n;n=n->hash_proximo)if(n->item==i)return n;return NULL;}
@@ -37,7 +37,9 @@ ITEM *lista_cruz_buscar(const LISTA_CRUZ*l,const ITEM*item) {
 
 bool lista_cruz_inserir(LISTA_CRUZ*l,ITEM*item) {
     if(!l||!item||item_campo(item,l->campo_linha)==NULL||
-       item_campo(item,l->campo_coluna)==NULL||lista_cruz_buscar(l,item)||!ampliar_hash(l))return false;
+       item_campo(item,l->campo_coluna)==NULL||
+       (l->esquema&&l->esquema!=item_esquema(item))||
+       lista_cruz_buscar(l,item)||!ampliar_hash(l))return false;
     GRUPO*linha=achar_grupo(l->linhas,item,l->campo_linha);
     GRUPO*coluna=achar_grupo(l->colunas,item,l->campo_coluna);
     GRUPO*nlinha=linha?NULL:calloc(1,sizeof(*nlinha));
@@ -53,7 +55,7 @@ bool lista_cruz_inserir(LISTA_CRUZ*l,ITEM*item) {
     if(ncoluna){ncoluna->proximo=l->colunas;l->colunas=ncoluna;}
     if(nc){nc->linha=linha;nc->coluna=coluna;nc->prox_linha=linha->celulas;linha->celulas=nc;
         nc->prox_coluna=coluna->celulas;coluna->celulas=nc;c=nc;}
-    ni->item=item;ni->proximo=c->itens;c->itens=ni;size_t k=hash_item(l,item);ni->hash_proximo=l->hash[k];l->hash[k]=ni;++linha->quantidade;++coluna->quantidade;++l->tamanho;
+    ni->item=item;ni->proximo=c->itens;c->itens=ni;size_t k=hash_item(l,item);ni->hash_proximo=l->hash[k];l->hash[k]=ni;++linha->quantidade;++coluna->quantidade;++l->tamanho;if(!l->esquema)l->esquema=item_esquema(item);
     return true;
 }
 
