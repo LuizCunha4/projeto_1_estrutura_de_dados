@@ -29,6 +29,7 @@ typedef struct {
 
 typedef struct esquema ESQUEMA;
 typedef struct item ITEM;
+typedef void (*ITEM_VISITANTE)(ITEM *item, void *contexto);
 
 /* Copia nomes e tipos. O esquema e imutavel e compartilhado pelos itens.
  * Rejeita quantidade zero, nomes vazios/duplicados e tipos invalidos.
@@ -51,7 +52,7 @@ bool esquema_buscar(const ESQUEMA *esquema, const char *nome, size_t *indice);
  * RESULTADOS apenas referenciam registros: nao devem chamar item_apagar.
  * Ordem de liberacao: resultados, registros da base, esquema compartilhado. */
 ITEM *item_criar(const ESQUEMA *esquema);
-/* Libera textos, vetor e item; nao libera esquema. Aceita NULL e zera *item.
+/* Libera textos, vetor e item; nao libera o esquema. Aceita NULL e zera *item.
  * Todas as referencias ao registro ficam invalidas apos esta chamada. */
 void item_apagar(ITEM **item);
 
@@ -60,6 +61,9 @@ size_t item_quantidade(const ITEM *item);
 /* Retorno emprestado; nao modificar/liberar. Texto pode ser invalidado por
  * substituicao do campo; todo o retorno e invalidado ao apagar o item. */
 const CAMPO *item_campo(const ITEM *item, size_t indice);
+/* Compara um campo entre itens do mesmo esquema. Valores ausentes ficam
+ * depois dos presentes; em esquemas/tipos incompatíveis retorna zero. */
+int item_comparar_campo(const ITEM *a, const ITEM *b, size_t indice);
 /* Exige tipo igual ao da coluna. Copia textos; nao assume a propriedade da
  * entrada. Se ausente, ignora valor. Falha preserva o campo anterior.
  * Inicialize o membro da union correspondente ao tipo informado.

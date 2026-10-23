@@ -1,7 +1,6 @@
 #include "item.h"
 
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -130,7 +129,7 @@ static void campo_limpar(CAMPO *campo) {
     campo->ausente = true;
 }
 
-/*Quem gerencia o dataset deve apagar o esquema depois de todos os itens.*/
+/* Quem gerencia o dataset deve apagar o esquema depois de todos os itens. */
 void item_apagar(ITEM **item) {
     if (item == NULL || *item == NULL)
         return;
@@ -155,6 +154,32 @@ const CAMPO *item_campo(const ITEM *item, size_t indice) {
     if (item == NULL || indice >= item->esquema->quantidade)
         return NULL;
     return &item->campos[indice];
+}
+
+int item_comparar_campo(const ITEM *a, const ITEM *b, size_t indice) {
+    if (a == NULL || b == NULL || a->esquema != b->esquema ||
+        indice >= a->esquema->quantidade)
+        return 0;
+    const CAMPO *x = &a->campos[indice], *y = &b->campos[indice];
+    if (x->tipo != y->tipo) return 0;
+    if (x->ausente != y->ausente) return x->ausente ? 1 : -1;
+    if (x->ausente) return 0;
+    switch (x->tipo) {
+    case CAMPO_TEXTO: {
+        int c = strcmp(x->valor.texto, y->valor.texto);
+        return (c > 0) - (c < 0);
+    }
+    case CAMPO_INTEIRO:
+        return (x->valor.inteiro > y->valor.inteiro) -
+               (x->valor.inteiro < y->valor.inteiro);
+    case CAMPO_REAL:
+        return (x->valor.real > y->valor.real) -
+               (x->valor.real < y->valor.real);
+    case CAMPO_BOOLEANO:
+        return (x->valor.booleano > y->valor.booleano) -
+               (x->valor.booleano < y->valor.booleano);
+    }
+    return 0;
 }
 
 bool item_definir_campo(ITEM *item, size_t indice, const CAMPO *campo) {

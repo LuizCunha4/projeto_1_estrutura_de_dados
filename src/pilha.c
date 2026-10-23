@@ -36,7 +36,6 @@ void pilha_apagar(PILHA **pilha) {
     atual = (*pilha)->topo;
     while (atual != NULL) {
         NO *anterior = atual->anterior;
-        item_apagar(&atual->item);
         free(atual);
         atual = anterior;
     }
@@ -101,6 +100,19 @@ ITEM *pilha_desempilhar(PILHA *pilha) {
     return item;
 }
 
+ITEM *pilha_remover_item(PILHA *pilha, ITEM *item) {
+    if (pilha == NULL || item == NULL) return NULL;
+    NO **elo = &pilha->topo;
+    while (*elo != NULL && (*elo)->item != item) elo = &(*elo)->anterior;
+    if (*elo == NULL) return NULL;
+    NO *removido = *elo;
+    *elo = removido->anterior;
+    ITEM *retirado = removido->item;
+    free(removido);
+    --pilha->tamanho;
+    return retirado;
+}
+
 void pilha_imprimir(PILHA *pilha) {
     NO *atual;
 
@@ -111,10 +123,18 @@ void pilha_imprimir(PILHA *pilha) {
     printf("Topo -> ");
     atual = pilha->topo;
     while (atual != NULL) {
-        printf("%d ", item_get_chave(atual->item));
+        const char *original = item_original(atual->item);
+        printf("%s ", original != NULL ? original : "<item>");
         atual = atual->anterior;
     }
     printf("<- Base\n");
+}
+
+void pilha_percorrer(const PILHA *pilha, TAD_VISITANTE visitante,
+                     void *contexto) {
+    if (pilha == NULL || visitante == NULL) return;
+    for (const NO *no = pilha->topo; no != NULL; no = no->anterior)
+        visitante(no->item, contexto);
 }
 
 void pilha_inverter(PILHA *pilha) {

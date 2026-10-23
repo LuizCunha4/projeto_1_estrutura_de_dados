@@ -41,7 +41,6 @@ void lista_cabeca_apagar(LISTA_CABECA **lista) {
     NO *p = (*lista)->cabeca->proximo;
     while (p != NULL) {
         NO *proximo = p->proximo;
-        item_apagar(&p->item);
         free(p);
         p = proximo;
     }
@@ -80,30 +79,29 @@ bool lista_cabeca_inserir(LISTA_CABECA *lista, ITEM *item) {
     return true;
 }
 
-ITEM *lista_cabeca_buscar(LISTA_CABECA *lista, int chave) {
-    if (lista == NULL)
+ITEM *lista_cabeca_buscar_item(const LISTA_CABECA *lista, const ITEM *item) {
+    if (lista == NULL || item == NULL)
         return NULL;
 
-    for (NO *p = lista->cabeca->proximo; p != NULL; p = p->proximo)
-        if (item_chave(p->item) == chave)
-            return p->item;
+    for (const NO *p = lista->cabeca->proximo; p != NULL; p = p->proximo)
+        if (p->item == item) return p->item;
 
     return NULL;
 }
 
-ITEM *lista_cabeca_remover(LISTA_CABECA *lista, int chave) {
-    if (lista == NULL)
+ITEM *lista_cabeca_remover(LISTA_CABECA *lista, ITEM *item) {
+    if (lista == NULL || item == NULL)
         return NULL;
 
     NO *p = lista->cabeca;
-    while (p->proximo != NULL && item_chave(p->proximo->item) != chave)
+    while (p->proximo != NULL && p->proximo->item != item)
         p = p->proximo;
 
     if (p->proximo == NULL)
         return NULL;
 
     NO *removido = p->proximo;
-    ITEM *item = removido->item;
+    ITEM *retirado = removido->item;
     p->proximo = removido->proximo;
 
     if (removido == lista->fim)
@@ -111,7 +109,7 @@ ITEM *lista_cabeca_remover(LISTA_CABECA *lista, int chave) {
 
     free(removido);
     lista->tamanho--;
-    return item;
+    return retirado;
 }
 
 void lista_cabeca_imprimir(const LISTA_CABECA *lista) {
@@ -123,9 +121,17 @@ void lista_cabeca_imprimir(const LISTA_CABECA *lista) {
     printf("cabeca -> ");
     const NO *p = lista->cabeca->proximo;
     while (p != NULL) {
-        item_escrever_csv(p->item, stdout);
+        const char *s = item_original(p->item);
+        printf("%s", s != NULL ? s : "<item>");
         printf(" -> ");
         p = p->proximo;
     }
     printf("NULL  [tamanho=%d]\n", lista->tamanho);
+}
+
+void lista_cabeca_percorrer(const LISTA_CABECA *lista,
+                            TAD_VISITANTE visitante, void *contexto) {
+    if (lista == NULL || visitante == NULL) return;
+    for (const NO *p=lista->cabeca->proximo; p!=NULL; p=p->proximo)
+        visitante(p->item, contexto);
 }

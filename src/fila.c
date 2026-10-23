@@ -69,15 +69,30 @@ ITEM *fila_remover(FILA *fila) {
     return item;
 }
 
-void fila_apagar(FILA **fila) {
-    ITEM *item;
+ITEM *fila_remover_item(FILA *fila, ITEM *item) {
+    if (fila == NULL || item == NULL) return NULL;
+    NO **elo = &fila->inicio;
+    NO *anterior = NULL;
+    while (*elo != NULL && (*elo)->item != item) {
+        anterior = *elo;
+        elo = &(*elo)->prox;
+    }
+    if (*elo == NULL) return NULL;
+    NO *removido = *elo;
+    *elo = removido->prox;
+    if (fila->fim == removido) fila->fim = anterior;
+    ITEM *retirado = removido->item;
+    free(removido);
+    --fila->tamanho;
+    return retirado;
+}
 
+void fila_apagar(FILA **fila) {
     if (fila == NULL || *fila == NULL)
         return;
 
     while (!fila_vazia(*fila)) {
-        item = fila_remover(*fila);
-        item_apagar(&item);
+        (void)fila_remover(*fila);
     }
 
     free(*fila);
@@ -115,8 +130,16 @@ void fila_imprimir(FILA *fila) {
     printf("inicio -> ");
     atual = fila->inicio;
     while (atual != NULL) {
-        printf("[%d] ", item_get_chave(atual->item));
+        const char *original = item_original(atual->item);
+        printf("[%s] ", original != NULL ? original : "item");
         atual = atual->prox;
     }
     printf("<- fim\n");
+}
+
+void fila_percorrer(const FILA *fila, TAD_VISITANTE visitante,
+                    void *contexto) {
+    if (fila == NULL || visitante == NULL) return;
+    for (const NO *no = fila->inicio; no != NULL; no = no->prox)
+        visitante(no->item, contexto);
 }
