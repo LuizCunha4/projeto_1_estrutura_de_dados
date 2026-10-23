@@ -12,6 +12,7 @@
 struct query {
     INSTRUCAO *instrucoes;
     size_t quantidade;
+    const ESQUEMA *esquema;
 };
 
 static char *pular_espacos(char *texto) {
@@ -78,35 +79,44 @@ static bool valor_filtro_ler(TIPO_CAMPO tipo, char *texto,
     return false;
 }
 
-static bool filtro_ler(char *argumentos, const ESQUEMA *esquema,
-                        INSTRUCAO *instrucao) {
-    char *nome = strtok(argumentos, " \t");
-    char *operador = strtok(NULL, " \t");
-    char *valor = strtok(NULL, "\r\n");
-    if (nome == NULL || operador == NULL || valor == NULL ||
-        !operador_valido(operador))
-        return false;
+static char *aparar(char *s) {
+    s = pular_espacos(s);
+    size_t n = strlen(s);
+    while (n > 0 && isspace((unsigned char)s[n - 1])) s[--n] = '\0';
+    return s;
+}
 
-    valor = pular_espacos(valor);
-    size_t tamanho = strlen(valor);
-    while (tamanho > 0 && isspace((unsigned char)valor[tamanho - 1]))
-        valor[--tamanho] = '\0';
-    if (*valor == '\0')
-        return false;
+static size_t separar_pipe(char *texto, char **partes, size_t maximo) {
+    size_t n = 0;
+    char *inicio = texto;
+    for (char *p = texto;; ++p) {
+        if (*p == '|' || *p == '\0') {
+            if (n == maximo) return 0;
+            bool fim = *p == '\0';
+            if (!fim) *p = '\0';
+            partes[n++] = aparar(inicio);
+            if (fim) break;
+            inicio = p + 1;
+        }
+    }
+    return n;
+}
 
+static bool filtro_partes_ler(char **p, size_t n, const ESQUEMA *esquema,
+                               INSTRUCAO *instrucao) {
+    if (n != 4 || *p[1] == '\0' || !operador_valido(p[2]) || *p[3] == '\0')
+        return false;
     size_t indice;
     const COLUNA *coluna;
-    if (!esquema_buscar(esquema, nome, &indice) ||
+    if (!esquema_buscar(esquema, p[1], &indice) ||
         (coluna = esquema_coluna(esquema, indice)) == NULL)
         return false;
-    if (coluna->tipo == CAMPO_BOOLEANO &&
-        strcmp(operador, "==") != 0 && strcmp(operador, "=") != 0 &&
-        strcmp(operador, "!=") != 0)
+    if (coluna->tipo == CAMPO_BOOLEANO && strcmp(p[2], "==") != 0 &&
+        strcmp(p[2], "=") != 0 && strcmp(p[2], "!=") != 0)
         return false;
-
     instrucao->indice_campo = indice;
-    strcpy(instrucao->operador, strcmp(operador, "=") == 0 ? "==" : operador);
-    return valor_filtro_ler(coluna->tipo, valor, instrucao);
+    strcpy(instrucao->operador, strcmp(p[2], "=") == 0 ? "==" : p[2]);
+    return valor_filtro_ler(coluna->tipo, p[3], instrucao);
 }
 
 static bool tipo_instrucao_ler(const char *nome,
@@ -143,81 +153,58 @@ static bool campo_numerico(const ESQUEMA *esquema, const char *nome,
            (coluna->tipo == CAMPO_INTEIRO || coluna->tipo == CAMPO_REAL);
 }
 
-static bool campos_ler(char *argumentos, const ESQUEMA *esquema,
-                       INSTRUCAO *instrucao, size_t minimo, size_t maximo) {
-    size_t capacidade = 0;
-    char *nome = strtok(argumentos, " \t");
-    while (nome != NULL) {
-        if (instrucao->quantidade_campos == maximo)
+static bool campos_partes_ler(char **p, size_t n, const ESQUEMA *esquema,
+                              INSTRUCAO *instrucao, size_t minimo,
+                              size_t maximo) {
+    size_t quantidade = n - 1;
+    if (quantidade < minimo || quantidade > maximo ||
+        quantidade > SIZE_MAX / sizeof(*instrucao->indices_campos))
+        return false;
+    instrucao->indices_campos = malloc(quantidade * sizeof(*instrucao->indices_campos));
+    if (instrucao->indices_campos == NULL) return false;
+    for (size_t i = 0; i < quantidade; ++i) {
+        if (*p[i + 1] == '\0' ||
+            !esquema_buscar(esquema, p[i + 1], &instrucao->indices_campos[i]))
             return false;
-        size_t indice;
-        if (!esquema_buscar(esquema, nome, &indice))
-            return false;
-        if (instrucao->quantidade_campos == capacidade) {
-            size_t nova = capacidade == 0 ? 2 : capacidade * 2;
-            if (nova > maximo) nova = maximo;
-            size_t *indices = realloc(instrucao->indices_campos,
-                                      nova * sizeof(*indices));
-            if (indices == NULL) return false;
-            instrucao->indices_campos = indices;
-            capacidade = nova;
-        }
-        instrucao->indices_campos[instrucao->quantidade_campos++] = indice;
-        nome = strtok(NULL, " \t");
+        for (size_t j = 0; j < i; ++j)
+            if (instrucao->indices_campos[j] == instrucao->indices_campos[i])
+                return false;
     }
-    return instrucao->quantidade_campos >= minimo;
+    instrucao->quantidade_campos = quantidade;
+    return true;
 }
 
-static bool instrucao_especifica_ler(INSTRUCAO *instrucao,
-                                     const ESQUEMA *esquema) {
-    char *args = copiar_texto(instrucao->argumentos);
-    if (args == NULL) return false;
-    bool valido = false;
+static bool instrucao_partes_ler(INSTRUCAO *instrucao, char **p, size_t n,
+                                  const ESQUEMA *esquema) {
     if (instrucao->tipo == SIM) {
-        char *campo = strtok(args, " \t");
-        char *alvo = strtok(NULL, " \t");
-        char *tol = strtok(NULL, " \t");
-        char *peso = strtok(NULL, " \t");
-        char *extra = strtok(NULL, " \t");
-        double a, t, p = 1.0;
-        if (campo != NULL && alvo != NULL && tol != NULL && extra == NULL &&
-            (peso == NULL || numero_real(peso, &p)) && p > 0.0 &&
-            numero_real(alvo, &a) && numero_real(tol, &t) && t > 0.0 &&
-            campo_numerico(esquema, campo, &instrucao->indice_campo)) {
-            instrucao->valor.tipo = esquema_coluna(esquema,
-                                  instrucao->indice_campo)->tipo;
-            instrucao->valor.ausente = false;
-            instrucao->valor.valor.real = a;
-            instrucao->tolerancia = t;
-            instrucao->peso = p;
-            valido = true;
-        }
-    } else if (instrucao->tipo == ACCEPT) {
-        char *limiar = strtok(args, " \t");
-        char *extra = strtok(NULL, " \t");
-        valido = limiar != NULL && extra == NULL &&
-                 numero_real(limiar, &instrucao->limiar) &&
-                 instrucao->limiar >= 0.0 && instrucao->limiar <= 1.0;
-    } else if (instrucao->tipo == ORDER) {
-        char *campo = strtok(args, " \t");
-        char *direcao = strtok(NULL, " \t");
-        char *extra = strtok(NULL, " \t");
-        if (campo != NULL && extra == NULL &&
-            esquema_buscar(esquema, campo, &instrucao->indice_campo) &&
-            (direcao == NULL || strcmp(direcao, "ASC") == 0 ||
-             strcmp(direcao, "DESC") == 0)) {
-            instrucao->ascendente = direcao == NULL || strcmp(direcao, "ASC") == 0;
-            valido = true;
-        }
-    } else if (instrucao->tipo == GROUP) {
-        valido = campos_ler(args, esquema, instrucao, 1, SIZE_MAX);
-    } else if (instrucao->tipo == CROSS) {
-        valido = campos_ler(args, esquema, instrucao, 2, 2);
-    } else {
-        valido = true;
+        double alvo, tol, peso;
+        if (n != 5 || !campo_numerico(esquema, p[1], &instrucao->indice_campo) ||
+            !numero_real(p[2], &alvo) || !numero_real(p[3], &tol) || tol <= 0.0 ||
+            !numero_real(p[4], &peso) || peso <= 0.0) return false;
+        instrucao->valor.tipo = esquema_coluna(esquema, instrucao->indice_campo)->tipo;
+        instrucao->valor.valor.real = alvo;
+        instrucao->tolerancia = tol;
+        instrucao->peso = peso;
+        return true;
     }
-    free(args);
-    return valido;
+    if (instrucao->tipo == ACCEPT)
+        return n == 2 && numero_real(p[1], &instrucao->limiar) &&
+               instrucao->limiar >= 0.0 && instrucao->limiar <= 1.0;
+    if (instrucao->tipo == ORDER) {
+        if (n != 3 || (strcmp(p[2], "ASC") != 0 && strcmp(p[2], "DESC") != 0))
+            return false;
+        instrucao->ascendente = strcmp(p[2], "ASC") == 0;
+        if (strcmp(p[1], "similarity") == 0) {
+            instrucao->ordenar_por_similaridade = true;
+            return true;
+        }
+        return esquema_buscar(esquema, p[1], &instrucao->indice_campo);
+    }
+    if (instrucao->tipo == GROUP)
+        return campos_partes_ler(p, n, esquema, instrucao, 2, SIZE_MAX);
+    if (instrucao->tipo == CROSS)
+        return campos_partes_ler(p, n, esquema, instrucao, 2, 2);
+    return false;
 }
 
 void query_liberar(QUERY **query) {
@@ -251,6 +238,7 @@ bool query_ler(FILE *arquivo, const ESQUEMA *esquema, QUERY **saida) {
     QUERY *query = calloc(1, sizeof(*query));
     if (query == NULL)
         return false;
+    query->esquema = esquema;
 
     char linha[TAMANHO_LINHA_QUERY];
     while (fgets(linha, sizeof(linha), arquivo) != NULL) {
@@ -262,34 +250,32 @@ bool query_ler(FILE *arquivo, const ESQUEMA *esquema, QUERY **saida) {
                                linha[tamanho - 1] == '\r'))
             linha[--tamanho] = '\0';
 
-        char *comando = pular_espacos(linha);
-        if (*comando == '\0' || *comando == '#')
+        char *linha_aparada = aparar(linha);
+        if (*linha_aparada == '\0' || *linha_aparada == '#')
             continue;
-        char *argumentos = comando;
-        while (*argumentos != '\0' && !isspace((unsigned char)*argumentos))
-            ++argumentos;
-        if (*argumentos != '\0')
-            *argumentos++ = '\0';
-        argumentos = pular_espacos(argumentos);
+        char *separador = strchr(linha_aparada, '|');
+        if (separador == NULL)
+            goto falha;
+        char *argumentos_copia = copiar_texto(separador + 1);
+        if (argumentos_copia == NULL)
+            goto falha;
+        char *partes[256];
+        size_t n_partes = separar_pipe(linha_aparada, partes,
+                                       sizeof(partes) / sizeof(partes[0]));
 
-        INSTRUCAO instrucao = {0};
-        if (!tipo_instrucao_ler(comando, &instrucao.tipo))
-            goto falha_instrucao;
-        if (*argumentos == '\0')
-            goto falha_instrucao;
-        instrucao.argumentos = copiar_texto(argumentos);
-        if (instrucao.argumentos == NULL)
+        INSTRUCAO instrucao = {.argumentos = argumentos_copia};
+        if (n_partes < 2 || !tipo_instrucao_ler(partes[0], &instrucao.tipo))
             goto falha_instrucao;
         if (instrucao.tipo == FILTER) {
-            char *argumentos_filtro = copiar_texto(instrucao.argumentos);
-            if (argumentos_filtro == NULL)
+            if (!filtro_partes_ler(partes, n_partes, esquema, &instrucao))
                 goto falha_instrucao;
-            bool valido = filtro_ler(argumentos_filtro, esquema, &instrucao);
-            free(argumentos_filtro);
-            if (!valido)
-                goto falha_instrucao;
-        } else if (!instrucao_especifica_ler(&instrucao, esquema)) {
+        } else if (!instrucao_partes_ler(&instrucao, partes, n_partes, esquema)) {
             goto falha_instrucao;
+        }
+        if (instrucao.tipo != FILTER && instrucao.tipo != SIM) {
+            for (size_t i = 0; i < query->quantidade; ++i)
+                if (query->instrucoes[i].tipo == instrucao.tipo)
+                    goto falha_instrucao;
         }
         if (!query_anexar(query, &instrucao))
             goto falha_instrucao;
@@ -326,7 +312,7 @@ static bool comparar(long double atual, long double alvo, const char *operador) 
 }
 
 double query_item_similaridade(const QUERY *query, const ITEM *item) {
-    if (query == NULL || item == NULL)
+    if (query == NULL || item == NULL || item_esquema(item) != query->esquema)
         return 0.0;
     long double soma = 0.0L, pesos = 0.0L;
     for (size_t i = 0; i < query->quantidade; ++i) {
@@ -348,8 +334,53 @@ double query_item_similaridade(const QUERY *query, const ITEM *item) {
     return pesos == 0.0L ? 1.0 : (double)(soma / pesos);
 }
 
+int query_item_comparar(const QUERY *query, const ITEM *a, const ITEM *b) {
+    if (query == NULL || a == NULL || b == NULL ||
+        item_esquema(a) != query->esquema || item_esquema(b) != query->esquema)
+        return 0;
+    const INSTRUCAO *ordem = NULL;
+    for (size_t i = 0; i < query->quantidade; ++i)
+        if (query->instrucoes[i].tipo == ORDER) ordem = &query->instrucoes[i];
+    if (ordem == NULL) return 0;
+    int comparacao = 0;
+    if (ordem->ordenar_por_similaridade) {
+        double sa = query_item_similaridade(query, a);
+        double sb = query_item_similaridade(query, b);
+        comparacao = (sa > sb) - (sa < sb);
+    } else {
+        const CAMPO *ca = item_campo(a, ordem->indice_campo);
+        const CAMPO *cb = item_campo(b, ordem->indice_campo);
+        if (ca == NULL || cb == NULL || ca->tipo != cb->tipo) return 0;
+        if (ca->ausente != cb->ausente) return ca->ausente ? 1 : -1;
+        if (ca->ausente) return 0;
+        switch (ca->tipo) {
+        case CAMPO_TEXTO:
+            comparacao = (strcmp(ca->valor.texto, cb->valor.texto) > 0) -
+                         (strcmp(ca->valor.texto, cb->valor.texto) < 0);
+            break;
+        case CAMPO_INTEIRO:
+            comparacao = (ca->valor.inteiro > cb->valor.inteiro) -
+                         (ca->valor.inteiro < cb->valor.inteiro);
+            break;
+        case CAMPO_REAL:
+            comparacao = (ca->valor.real > cb->valor.real) -
+                         (ca->valor.real < cb->valor.real);
+            break;
+        case CAMPO_BOOLEANO:
+            comparacao = (ca->valor.booleano > cb->valor.booleano) -
+                         (ca->valor.booleano < cb->valor.booleano);
+            break;
+        }
+    }
+    return ordem->ascendente ? comparacao : -comparacao;
+}
+
+int query_comparador_ordenacao(const ITEM *a, const ITEM *b, void *contexto) {
+    return query_item_comparar((const QUERY *)contexto, a, b);
+}
+
 bool query_item_aceito(const QUERY *query, const ITEM *item) {
-    if (query == NULL || item == NULL)
+    if (query == NULL || item == NULL || item_esquema(item) != query->esquema)
         return false;
     for (size_t i = 0; i < query->quantidade; ++i) {
         const INSTRUCAO *instrucao = &query->instrucoes[i];

@@ -1,19 +1,19 @@
 #ifndef LISTA_CRUZ_H
 #define LISTA_CRUZ_H
 
-#include <stdbool.h>
-#include "item.h"
+#include "tad.h"
 
 typedef struct lista_cruz_ LISTA_CRUZ;
+typedef enum { CRUZ_POR_LINHA, CRUZ_POR_COLUNA } LISTA_CRUZ_EIXO;
 
-LISTA_CRUZ *lista_cruz_criar(int linhas, int colunas);
+/* Cada item é indexado simultaneamente pelos valores dos dois campos. */
+LISTA_CRUZ *lista_cruz_criar(size_t campo_linha, size_t campo_coluna);
 void lista_cruz_apagar(LISTA_CRUZ **lista);
-
-bool lista_cruz_inserir(LISTA_CRUZ *lista, int linha, int coluna, ITEM *item);
-ITEM *lista_cruz_buscar(const LISTA_CRUZ *lista, int linha, int coluna);
-ITEM *lista_cruz_remover(LISTA_CRUZ *lista, int linha, int coluna);
-
-void lista_cruz_imprimir_linha(const LISTA_CRUZ *lista, int linha);
-void lista_cruz_imprimir_coluna(const LISTA_CRUZ *lista, int coluna);
+bool lista_cruz_inserir(LISTA_CRUZ *lista, ITEM *item);
+ITEM *lista_cruz_buscar(const LISTA_CRUZ *lista, const ITEM *item);
+ITEM *lista_cruz_remover(LISTA_CRUZ *lista, ITEM *item);
+void lista_cruz_percorrer(const LISTA_CRUZ *lista, LISTA_CRUZ_EIXO eixo,
+                          TAD_VISITANTE visitante, void *contexto);
+size_t lista_cruz_grupos(const LISTA_CRUZ *lista, LISTA_CRUZ_EIXO eixo);
 
 #endif

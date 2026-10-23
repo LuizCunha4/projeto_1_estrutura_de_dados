@@ -2,6 +2,7 @@
 #define PILHA_H
 
 #include "item.h"
+#include "tad.h"
 
 #include <stdbool.h>
 
@@ -15,7 +16,10 @@ int pilha_tamanho(PILHA *pilha);
 ITEM *pilha_topo(PILHA *pilha);
 bool pilha_empilhar(PILHA *pilha, ITEM *item);
 ITEM *pilha_desempilhar(PILHA *pilha);
+ITEM *pilha_remover_item(PILHA *pilha, ITEM *item);
 void pilha_imprimir(PILHA *pilha);
 void pilha_inverter(PILHA *pilha);
+void pilha_percorrer(const PILHA *pilha, TAD_VISITANTE visitante,
+                     void *contexto);
 
 #endif
