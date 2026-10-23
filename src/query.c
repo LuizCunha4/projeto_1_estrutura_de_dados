@@ -124,7 +124,100 @@ static bool tipo_instrucao_ler(const char *nome,
 static void instrucao_limpar(INSTRUCAO *instrucao) {
     free((char *)instrucao->argumentos);
     free(instrucao->texto_filtro);
+    free(instrucao->indices_campos);
     *instrucao = (INSTRUCAO){0};
+}
+
+static bool numero_real(char *texto, double *valor) {
+    char *fim;
+    errno = 0;
+    *valor = strtod(texto, &fim);
+    return errno == 0 && fim != texto && *fim == '\0' && isfinite(*valor);
+}
+
+static bool campo_numerico(const ESQUEMA *esquema, const char *nome,
+                           size_t *indice) {
+    const COLUNA *coluna;
+    return esquema_buscar(esquema, nome, indice) &&
+           (coluna = esquema_coluna(esquema, *indice)) != NULL &&
+           (coluna->tipo == CAMPO_INTEIRO || coluna->tipo == CAMPO_REAL);
+}
+
+static bool campos_ler(char *argumentos, const ESQUEMA *esquema,
+                       INSTRUCAO *instrucao, size_t minimo, size_t maximo) {
+    size_t capacidade = 0;
+    char *nome = strtok(argumentos, " \t");
+    while (nome != NULL) {
+        if (instrucao->quantidade_campos == maximo)
+            return false;
+        size_t indice;
+        if (!esquema_buscar(esquema, nome, &indice))
+            return false;
+        if (instrucao->quantidade_campos == capacidade) {
+            size_t nova = capacidade == 0 ? 2 : capacidade * 2;
+            if (nova > maximo) nova = maximo;
+            size_t *indices = realloc(instrucao->indices_campos,
+                                      nova * sizeof(*indices));
+            if (indices == NULL) return false;
+            instrucao->indices_campos = indices;
+            capacidade = nova;
+        }
+        instrucao->indices_campos[instrucao->quantidade_campos++] = indice;
+        nome = strtok(NULL, " \t");
+    }
+    return instrucao->quantidade_campos >= minimo;
+}
+
+static bool instrucao_especifica_ler(INSTRUCAO *instrucao,
+                                     const ESQUEMA *esquema) {
+    char *args = copiar_texto(instrucao->argumentos);
+    if (args == NULL) return false;
+    bool valido = false;
+    if (instrucao->tipo == SIM) {
+        char *campo = strtok(args, " \t");
+        char *alvo = strtok(NULL, " \t");
+        char *tol = strtok(NULL, " \t");
+        char *peso = strtok(NULL, " \t");
+        char *extra = strtok(NULL, " \t");
+        double a, t, p = 1.0;
+        if (campo != NULL && alvo != NULL && tol != NULL && extra == NULL &&
+            (peso == NULL || numero_real(peso, &p)) && p > 0.0 &&
+            numero_real(alvo, &a) && numero_real(tol, &t) && t > 0.0 &&
+            campo_numerico(esquema, campo, &instrucao->indice_campo)) {
+            instrucao->valor.tipo = esquema_coluna(esquema,
+                                  instrucao->indice_campo)->tipo;
+            instrucao->valor.ausente = false;
+            instrucao->valor.valor.real = a;
+            instrucao->tolerancia = t;
+            instrucao->peso = p;
+            valido = true;
+        }
+    } else if (instrucao->tipo == ACCEPT) {
+        char *limiar = strtok(args, " \t");
+        char *extra = strtok(NULL, " \t");
+        valido = limiar != NULL && extra == NULL &&
+                 numero_real(limiar, &instrucao->limiar) &&
+                 instrucao->limiar >= 0.0 && instrucao->limiar <= 1.0;
+    } else if (instrucao->tipo == ORDER) {
+        char *campo = strtok(args, " \t");
+        char *direcao = strtok(NULL, " \t");
+        char *extra = strtok(NULL, " \t");
+        if (campo != NULL && extra == NULL &&
+            esquema_buscar(esquema, campo, &instrucao->indice_campo) &&
+            (direcao == NULL || strcmp(direcao, "ASC") == 0 ||
+             strcmp(direcao, "DESC") == 0)) {
+            instrucao->ascendente = direcao == NULL || strcmp(direcao, "ASC") == 0;
+            valido = true;
+        }
+    } else if (instrucao->tipo == GROUP) {
+        valido = campos_ler(args, esquema, instrucao, 1, SIZE_MAX);
+    } else if (instrucao->tipo == CROSS) {
+        valido = campos_ler(args, esquema, instrucao, 2, 2);
+    } else {
+        valido = true;
+    }
+    free(args);
+    return valido;
 }
 
 void query_liberar(QUERY **query) {
@@ -195,6 +288,8 @@ bool query_ler(FILE *arquivo, const ESQUEMA *esquema, QUERY **saida) {
             free(argumentos_filtro);
             if (!valido)
                 goto falha_instrucao;
+        } else if (!instrucao_especifica_ler(&instrucao, esquema)) {
+            goto falha_instrucao;
         }
         if (!query_anexar(query, &instrucao))
             goto falha_instrucao;
@@ -230,6 +325,29 @@ static bool comparar(long double atual, long double alvo, const char *operador) 
     return atual >= alvo;
 }
 
+double query_item_similaridade(const QUERY *query, const ITEM *item) {
+    if (query == NULL || item == NULL)
+        return 0.0;
+    long double soma = 0.0L, pesos = 0.0L;
+    for (size_t i = 0; i < query->quantidade; ++i) {
+        const INSTRUCAO *instrucao = &query->instrucoes[i];
+        if (instrucao->tipo != SIM) continue;
+        const CAMPO *campo = item_campo(item, instrucao->indice_campo);
+        long double valor = 0.0L;
+        if (campo != NULL && !campo->ausente) {
+            long double atual = campo->tipo == CAMPO_INTEIRO
+                ? (long double)campo->valor.inteiro
+                : (long double)campo->valor.real;
+            long double distancia = fabsl(atual - instrucao->valor.valor.real);
+            valor = 1.0L - distancia / instrucao->tolerancia;
+            if (valor < 0.0L) valor = 0.0L;
+        }
+        soma += valor * instrucao->peso;
+        pesos += instrucao->peso;
+    }
+    return pesos == 0.0L ? 1.0 : (double)(soma / pesos);
+}
+
 bool query_item_aceito(const QUERY *query, const ITEM *item) {
     if (query == NULL || item == NULL)
         return false;
@@ -260,6 +378,12 @@ bool query_item_aceito(const QUERY *query, const ITEM *item) {
                              instrucao->operador)) {
             return false;
         }
+    }
+    for (size_t i = 0; i < query->quantidade; ++i) {
+        const INSTRUCAO *instrucao = &query->instrucoes[i];
+        if (instrucao->tipo == ACCEPT &&
+            query_item_similaridade(query, item) < instrucao->limiar)
+            return false;
     }
     return true;
 }
