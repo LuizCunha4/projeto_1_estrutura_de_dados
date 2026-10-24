@@ -18,7 +18,7 @@ Este arquivo registra informações duráveis para futuros chats e ferramentas q
 
 ## Arquitetura acordada e próximos passos
 
-- A função principal será implementada por último, após os TADs estarem funcionais e consistentes. Não antecipar sua implementação.
+- A função principal está em `src/main.c`, após os módulos. `src/argumentos.c` lê e valida as opções de linha de comando.
 - `lib/item.h` e `src/item.c` implementam um ITEM genérico com esquema compartilhado e vetor de campos tipados. O esquema copia os nomes das colunas; os itens copiam seus textos e apenas referenciam o esquema. Os oito TADs agora armazenam ITEMs genéricos e percorrem referências sem liberar registros. `lib/estrutura.h` fornece uma fachada comum que diferencia propriedade da base e referências de resultados. O item também possui uma cópia opcional do registro original, invalidada ao modificar campos e liberada junto ao item.
 - O parser em `query.c` segue a sintaxe oficial separada por `|`. `query_item_similaridade` calcula a média ponderada dos critérios SIM; `query_item_comparar` implementa ORDER e aceita `similarity`; GROUP expõe índices para `lista_gen`, e CROSS fornece os dois índices para `lista_cruz`. `src/estrutura.c` conecta esses metadados às estruturas.
 - A base é dona dos registros após inserção bem-sucedida. Resultados apenas os referenciam e não devem liberá-los. Após reader_ler entregar um item, o chamador é responsável por ele até transferi-lo à base; se essa inserção falhar, o chamador deve liberá-lo, não o leitor automaticamente. Uma tentativa de reinserir um ponteiro já pertencente à base não devolve sua propriedade ao chamador. Liberar resultados antes dos registros da base e liberar o leitor/esquema por último. Remover da base transfere a propriedade ao chamador, que deve preservar o item enquanto houver referências de resultados.
@@ -27,17 +27,17 @@ Este arquivo registra informações duráveis para futuros chats e ferramentas q
 - A exportação usa o cabeçalho preservado no leitor e o original guardado no item. Não exportar silenciosamente um original invalidado por alteração dos campos. O chamador deve verificar também erros adiados no fflush/fclose da saída.
 - O leitor de empresas mantém as 17 colunas: bloco municipal, separadora (_separador no esquema) e bloco estadual independente (prefixo estado. no esquema). Os nomes internos não alteram o cabeçalho exportado. Não inferir relação entre o município e o estado na mesma linha. Códigos IBGE são texto; '-' nos tempos representa ausência.
 
-## Estado atual verificado em 23/10/2026
+## Estado atual verificado em 24/10/2026
 
 - Os módulos de item, CSV e leitores já estão implementados. O CSV trata aspas escapadas, delimitadores e quebras de linha dentro de campos entre aspas, campos vazios e registros sem quebra de linha final. Os leitores validam os cabeçalhos esperados e fazem conversões tipadas; não inferem automaticamente o esquema de um CSV arbitrário.
 - `src/reader_privado.h` é uma interface interna dos leitores. READER_COLUNA descreve nome esperado na entrada, nome interno, tipo e regra de ausência. COLUNA descreve nome/tipo no esquema; CAMPO contém o valor de um registro. Não confundir descritores estáticos, vetor temporário de criação do esquema e campos de cada item.
-- `src/cliente.c` lê as oito opções de linha de comando, incluindo --limit. Consultas não são mais processadas nesse módulo. Ainda falta validação completa dos argumentos: valores inválidos, opções desconhecidas, opções sem valor e textos longos não são comunicados como erro ao chamador.
-- `src/query.c` e `lib/query.h` implementam FILTER, SIM, ACCEPT, ORDER, GROUP e CROSS separados por `|`, incluindo nomes de campos com espaços, média ponderada e ORDER por similarity. O parser resolve nomes contra o esquema e rejeita campos inexistentes. Isso não significa integração completa do aplicativo nem cobertura exaustiva de casos de erro.
+- `src/argumentos.c` valida as oito opções de linha de comando, incluindo valores numéricos, opções desconhecidas ou repetidas, valores ausentes e textos longos. `src/main.c` valida as opções e coordena leitores, estruturas, consulta, busca e exportação.
+- `src/query.c` e `lib/query.h` implementam FILTER, SIM, ACCEPT, ORDER, GROUP e CROSS separados por `|`, incluindo nomes de campos com espaços, média ponderada e ORDER por similarity. O parser resolve nomes contra o esquema e rejeita campos inexistentes. O fluxo está integrado no aplicativo; ainda não há cobertura exaustiva de todos os casos de erro.
 - Os oito TADs usam ITEM genérico e liberam apenas sua própria organização. `src/estrutura.c` implementa a fachada de base/resultados. A lista com cabeça possui sentinela real; a ordenada mantém a ordem na inserção; a generalizada usa grupos/subgrupos; a cruzada mantém dois eixos sem duplicar o ITEM. As listas sequencial e ordenada começam com capacidade 16 e dobram via realloc; a cruzada começa com hash de 32 posições e o amplia acima de 75% de ocupação. Permanecem as pendências específicas da revisão abaixo.
-- `makefile` ainda contém apenas um comentário. A função principal do aplicativo e a integração completa permanecem pendentes, conforme a ordem de trabalho acordada.
-- Abrir e fechar arquivos cabe ao chamador/coordenador, não aos leitores. Essa coordenação poderá ficar no cliente, mas ainda não está implementada ali. Depois de terminar a leitura, o arquivo de entrada pode ser fechado; o leitor deve permanecer vivo até os itens serem liberados, pois possui o esquema.
+- `makefile` compila os fontes de `src/` com `-Wall -Wextra -pedantic` e gera o executável `trabalho`. `src/main.c` abre e fecha os arquivos; os leitores emprestam o `FILE`. Depois de terminar a leitura, o arquivo de entrada pode ser fechado; o leitor permanece vivo até os itens serem liberados, pois possui o esquema.
 - Estão versionados `tests/test_csv.c`, `tests/test_reader.c`, `tests/test_query.c` e `tests/test_tads.c`. A pasta tests não está ignorada; o `.gitignore` atual ignora apenas referencia. Os testes possuem suas próprias funções main, independentes da futura função principal do aplicativo; podem ser compilados diretamente com o compilador, sem Makefile, conforme README.
 - Validação histórica registrada: os módulos de leitura passaram com `-Wall -Wextra -pedantic -Werror` e sanitizadores, incluindo leitura/exportação dos 89.227 registros de asteroides e 5.570 registros de empresas com comparação byte a byte. Isso não revalida alterações posteriores nem os TADs atuais. A revisão anterior também registrou verificação de sintaxe de todos os fontes; sintaxe não comprova ligação ou execução completa.
+- Em 24/10/2026, `make` compilou o executável; os quatro testes existentes passaram com `-Werror` e sanitizadores. O fluxo avançado passou com `lista_cruz` na base e `lista_gen` nos resultados. As 64 combinações de base/result também passaram com uma consulta contendo GROUP e CROSS, em amostras de 25 registros. Isso não substitui a revisão de contratos e a ampliação de cobertura listadas abaixo.
 - Reavaliar arquivos e estado do Git antes de novas alterações: colegas podem atualizar o repositório em outros chats ou no GitHub.
 
 ## Revisão dos contratos em 23/10/2026
@@ -58,7 +58,7 @@ Em 23/10/2026, a fachada passou a reservar cada ITEM para uma única BASE, rejei
 2. Revisar uniformidade de esquema e validação de índices nos TADs quando usados diretamente, fora da fachada.
 3. Acrescentar percurso interrompível com semântica explícita de parada/erro, preservando a ordem própria de cada TAD e usando top-k na exportação dos resultados.
 4. Ampliar testes de crescimento (16/17, 32/33 nos vetores e 24/25 no hash), remoção de representantes, falhas de alocação e propriedade nas 64 combinações base/resultado.
-5. Depois de estabilizar os módulos, concluir validação de argumentos e integração; manter a função principal do aplicativo como etapa final, seguida da validação completa do executável e da entrega.
+5. Concluir a revisão dos módulos, preparar as consultas e exemplos exigidos e produzir os relatórios do projeto e experimental.
 
 ## Resultado exigido pelo enunciado
 

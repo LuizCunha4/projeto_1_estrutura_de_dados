@@ -4,7 +4,7 @@ Trabalho de SCC0202 (Algoritmos e Estruturas de Dados I). A especificação comp
 
 ## Estado atual
 
-O executável final ainda não está integrado: falta implementar a função principal e o `makefile` ainda não gera `trabalho`. CSV, leitores, parser de consulta, TADs genéricos e uma fachada comum para as estruturas já têm implementação. A função principal continua sendo a última etapa, depois de fechar os módulos.
+O aplicativo está integrado. `src/main.c` contém o fluxo principal; `src/argumentos.c` lê e valida as opções de linha de comando. O comando `make` gera `trabalho`. Os módulos possuem testes isolados em `tests/`.
 
 ## Dados, leitura e propriedade da memória
 
@@ -58,9 +58,9 @@ Os testes de leitores incluem os dois datasets completos e comparação byte a b
 ## Ordem de implementação sugerida
 
 1. TADs, parser e operações avançadas têm testes isolados; manter esses contratos estáveis.
-2. Implementar a função principal e conectar leitores, estruturas, filtros, pontuação, `top-k` e exportação. Verificar cada combinação de `--base` e `--result`.
-3. Completar o `makefile`, a saída de métricas e os exemplos de execução.
-4. Medir tempos, produzir os exemplos e escrever os dois relatórios.
+2. Revisar os contratos ainda pendentes dos TADs e ampliar os casos de teste.
+3. Criar os exemplos de execução e os relatórios exigidos.
+4. Medir tempos, calcular médias e comparar os resultados com a complexidade assintótica.
 
 ## Exemplo de interface final
 
