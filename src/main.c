@@ -1,3 +1,6 @@
+/* Disponibiliza clock_gettime, como no exemplo POSIX do professor. */
+#define _POSIX_C_SOURCE 200809L
+
 #include "argumentos.h"
 
 #include "estrutura.h"
@@ -26,25 +29,28 @@ typedef struct {
     bool erro;
 } EXPORTACAO;
 
-static double segundos(clock_t inicio, clock_t fim) {
-    return (double)(fim - inicio) / CLOCKS_PER_SEC;
+/* Relógio monotônico: mede tempo decorrido sem sofrer ajustes do relógio civil.
+ * Convertemos os nanossegundos para segundos; durações são fim - início. */
+static double agora(void) {
+    struct timespec tempo;
+    clock_gettime(CLOCK_MONOTONIC, &tempo);
+    return (double)tempo.tv_sec + (double)tempo.tv_nsec / 1e9;
 }
 
 static void buscar_item(ITEM *item, void *contexto) {
     BUSCA *busca = contexto;
-    clock_t inicio = clock();
     bool aceito = busca->consulta == NULL ||
                   query_item_aceito(busca->consulta, item);
-    busca->tempo_busca += segundos(inicio, clock());
     ++busca->examinados;
 
     if (!aceito) return;
     ++busca->aceitos;
     if (busca->erro) return;
 
-    inicio = clock();
+    /* A inserção acontece durante a busca, mas tem uma métrica separada. */
+    double inicio = agora();
     if (!estrutura_inserir(busca->resultados, item)) busca->erro = true;
-    busca->tempo_insercao += segundos(inicio, clock());
+    busca->tempo_insercao += agora() - inicio;
 }
 
 static void exportar_item(ITEM *item, void *contexto) {
@@ -81,6 +87,9 @@ int main(int argc, char *argv[]) {
     ESTRUTURA *base = NULL, *resultados = NULL;
     size_t carregados = 0;
     double tempo_carga = 0.0;
+    double tempo_escrita = 0.0;
+    BUSCA busca = {0};
+    EXPORTACAO exportacao = {0};
     int status = EXIT_FAILURE;
 
     if (!argumentos_ler(argc, argv, &configuracao, erro, sizeof(erro))) {
@@ -123,7 +132,8 @@ int main(int argc, char *argv[]) {
     }
 
     {
-        clock_t inicio = clock();
+        /* A carga inclui a leitura e a inserção de cada registro na base. */
+        double inicio = agora();
         while (opcoes->limit == 0 || carregados < (size_t)opcoes->limit) {
             ITEM *item = NULL;
             READER_STATUS leitura = reader_ler(reader, &item);
@@ -140,24 +150,20 @@ int main(int argc, char *argv[]) {
             }
             ++carregados;
         }
-        tempo_carga = segundos(inicio, clock());
+        tempo_carga = agora() - inicio;
     }
 
     {
-        BUSCA busca = {consulta, resultados, 0, 0, false, 0.0, 0.0};
+        busca = (BUSCA){consulta, resultados, 0, 0, false, 0.0, 0.0};
+        double inicio = agora();
         estrutura_percorrer(base, buscar_item, &busca);
+        /* Inclui o percurso da base e a avaliação da consulta. Descontamos
+         * as inserções, já medidas no visitante, para não contá-las duas vezes. */
+        busca.tempo_busca = (agora() - inicio) - busca.tempo_insercao;
         if (busca.erro) {
             fprintf(stderr, "Erro ao inserir registro nos resultados.\n");
             goto fim;
         }
-
-        printf("Registros carregados: %zu\n", carregados);
-        printf("Registros examinados: %zu\n", busca.examinados);
-        printf("Registros aceitos: %zu\n", busca.aceitos);
-        printf("Tempo de carga: %.6f s\n", tempo_carga);
-        printf("Tempo de busca: %.6f s\n", busca.tempo_busca);
-        printf("Tempo de inserção nos resultados: %.6f s\n",
-               busca.tempo_insercao);
     }
 
     saida = fopen(opcoes->output, "wb");
@@ -167,8 +173,9 @@ int main(int argc, char *argv[]) {
     }
 
     {
-        EXPORTACAO exportacao = {reader, saida, (size_t)opcoes->top_k, 0, false};
-        clock_t inicio = clock();
+        exportacao = (EXPORTACAO){reader, saida, (size_t)opcoes->top_k, 0, false};
+        /* Inclui cabeçalho, registros e a conclusão da escrita no arquivo. */
+        double inicio = agora();
         if (!reader_escrever_cabecalho(reader, saida)) exportacao.erro = true;
         else estrutura_percorrer(resultados, exportar_item, &exportacao);
         if (fflush(saida) != 0) exportacao.erro = true;
@@ -179,11 +186,19 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "Erro ao escrever arquivo de saída.\n");
             goto fim;
         }
-        printf("Registros escritos: %zu\n", exportacao.escritos);
-        printf("Tempo de escrita: %.6f s\n", segundos(inicio, clock()));
+        tempo_escrita = agora() - inicio;
     }
 
-    printf("Status: sucesso\n");
+    /* Publicar o resumo somente depois de confirmar a escrita do CSV.
+     * Os tempos internos estão em segundos; o enunciado pede milissegundos. */
+    printf("STATUS=OK\n");
+    printf("INPUT_RECORDS=%zu\n", carregados);
+    printf("MATCHED_RECORDS=%zu\n", busca.aceitos);
+    printf("OUTPUT_RECORDS=%zu\n", exportacao.escritos);
+    printf("LOAD_MS=%.3f\n", tempo_carga * 1000.0);
+    printf("SEARCH_MS=%.3f\n", busca.tempo_busca * 1000.0);
+    printf("RESULT_INSERT_MS=%.3f\n", busca.tempo_insercao * 1000.0);
+    printf("WRITE_MS=%.3f\n", tempo_escrita * 1000.0);
     status = EXIT_SUCCESS;
 
 fim:
