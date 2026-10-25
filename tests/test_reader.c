@@ -186,8 +186,8 @@ int main(void) {
     teste_nasa();
     teste_empresas();
     teste_erros();
-    dataset("data/asteroid_dataset_20251019.csv", reader_nasa_criar);
-    dataset("data/07_ArquivoDados_Jul26 (Mapa de Empresas).csv", reader_empresas_criar);
+    dataset("data/asteroids.csv", reader_nasa_criar);
+    dataset("data/mapa_empresas.csv", reader_empresas_criar);
     puts("test_reader: OK");
     return 0;
 }
