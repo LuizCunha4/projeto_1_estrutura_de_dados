@@ -1,0 +1,5 @@
+FILTER|Empresas Ativas|>=|500
+SIM|Empresas Ativas|5000|5000|1
+SIM|Tempo Médio de Abertura|12|12|2
+ACCEPT|0.70
+ORDER|similarity|DESC

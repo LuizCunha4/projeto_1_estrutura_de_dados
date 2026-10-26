@@ -1,0 +1,4 @@
+FILTER|Empresas Ativas|>=|1000
+FILTER|Empresas Abertas|>|0
+FILTER|Tempo Médio de Abertura|<=|24
+ORDER|Tempo Médio de Abertura|ASC

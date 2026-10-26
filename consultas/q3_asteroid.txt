@@ -1,0 +1,3 @@
+FILTER|is_future_event|==|true
+FILTER|distance_au|<=|0.10
+CROSS|threat_category|year

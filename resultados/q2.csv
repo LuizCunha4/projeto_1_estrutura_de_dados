@@ -1,0 +1,11 @@
+asteroid_designation,asteroid_fullname,close_approach_date,year,month,distance_au,velocity_km_s,absolute_magnitude,days_until_approach,is_past_event,is_future_event,risk_score,panic_level,threat_category,panic_verdict,on_sentry_list,sentry_impact_prob,sentry_torino_scale,sentry_palermo_scale,sentry_diameter_km
+2024 AV2,       (2024 AV2),2024-01-01 02:47:00,2024,1,0.0097074098866455,8.06343461087769,26.64,-658,True,False,0.41873944728237905,4,MONITOR,"Worth a tweet, not worth a bunker.",False,,,,
+2023 YR1,       (2023 YR1),2024-01-01 02:48:00,2024,1,0.0166083198176225,13.2957757989171,25.68,-658,True,False,0.42969582555374014,4,MONITOR,"Worth a tweet, not worth a bunker.",False,,,,
+2024 AA6,       (2024 AA6),2024-01-01 12:30:00,2024,1,0.0491415516379195,7.12433938883838,25.12,-657,True,False,0.33542732559834026,3,MONITOR,"Worth a tweet, not worth a bunker.",False,,,,
+2023 YY1,       (2023 YY1),2024-01-01 20:09:00,2024,1,0.0271321168847435,6.47607944632333,25.77,-657,True,False,0.37637891911148813,4,MONITOR,"Worth a tweet, not worth a bunker.",False,,,,
+2023 YR,       (2023 YR),2024-01-02 03:18:00,2024,1,0.0115640803252806,12.2195715368304,24.9,-657,True,False,0.43469198446188273,4,MONITOR,"Worth a tweet, not worth a bunker.",False,,,,
+2024 AQ1,       (2024 AQ1),2024-01-02 08:59:00,2024,1,0.0438286897610599,15.4695451409642,23.72,-657,True,False,0.38554068988126544,4,MONITOR,"Worth a tweet, not worth a bunker.",False,,,,
+2019 KK5,       (2019 KK5),2024-01-02 21:21:00,2024,1,0.0260972744624454,20.8331302779033,22.79,-656,True,False,0.44638289378240903,4,MONITOR,"Worth a tweet, not worth a bunker.",False,,,,
+2024 AM3,       (2024 AM3),2024-01-03 09:45:00,2024,1,0.0179149084472961,9.63913243614106,26.6,-656,True,False,0.40978023922360857,4,MONITOR,"Worth a tweet, not worth a bunker.",False,,,,
+2024 AA3,       (2024 AA3),2024-01-03 13:49:00,2024,1,0.034807715689713,10.7365146763029,25.76,-655,True,False,0.3811870777812884,4,MONITOR,"Worth a tweet, not worth a bunker.",False,,,,
+2024 AB2,       (2024 AB2),2024-01-04 21:18:00,2024,1,0.0049740667083454,7.00377074161167,26.83,-654,True,False,0.423192076916569,4,MONITOR,"Worth a tweet, not worth a bunker.",False,,,,

@@ -1,0 +1,4 @@
+FILTER|Empresas Abertas|<=|10
+FILTER|Empresas Ativas|>=|100
+GROUP|Empresas Abertas|Empresas Fechadas
+CROSS|Empresas Abertas|Empresas Fechadas

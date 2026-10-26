@@ -1,2 +1,11 @@
 /referencia/
 /trabalho
+/.venv/
+__pycache__/
+*.pyc
+*.o
+*.tmp
+.~lock.*#
+/.agents/
+/.codex/
+/AGENTS.md

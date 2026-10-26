@@ -1,0 +1,11 @@
+asteroid_designation,asteroid_fullname,close_approach_date,year,month,distance_au,velocity_km_s,absolute_magnitude,days_until_approach,is_past_event,is_future_event,risk_score,panic_level,threat_category,panic_verdict,on_sentry_list,sentry_impact_prob,sentry_torino_scale,sentry_palermo_scale,sentry_diameter_km
+2017 AT4,       (2017 AT4),2100-12-20 09:53:00,2100,12,0.0995679378905178,5.84701061242564,26.6,27454,False,True,0.22863943407828471,2,SAFE,You're fine. Go touch grass.,False,,,,
+2025 GY,       (2025 GY),2100-11-11 02:25:00,2100,11,0.0936013694269341,6.91818216478536,28.42,27415,False,True,0.24606716066904316,2,SAFE,You're fine. Go touch grass.,False,,,,
+2011 UZ275,       (2011 UZ275),2100-11-09 09:06:00,2100,11,0.089058012497407,5.03080217427403,23.6,27413,False,True,0.24624509985529605,2,SAFE,You're fine. Go touch grass.,False,,,,
+138404,138404 (2000 HA24),2100-10-09 06:49:00,2100,10,0.0953864685512396,6.25441309376907,19.39,27382,False,True,0.23971661926653648,2,SAFE,You're fine. Go touch grass.,False,,,,
+2025 QR12,       (2025 QR12),2100-09-15 23:03:00,2100,9,0.0964770250994903,5.52141379576904,23.76,27359,False,True,0.23431835197639556,2,SAFE,You're fine. Go touch grass.,False,,,,
+2011 TN9,       (2011 TN9),2100-09-04 11:29:00,2100,9,0.0959541297533476,7.40429114729252,21.39,27348,False,True,0.24439364862232846,2,SAFE,You're fine. Go touch grass.,False,,,,
+2015 MX53,       (2015 MX53),2100-08-17 08:12:00,2100,8,0.0963845991325929,8.17459497305604,23.58,27329,False,True,0.24738515315693907,2,SAFE,You're fine. Go touch grass.,False,,,,
+2022 PE,       (2022 PE),2100-08-13 22:09:00,2100,8,0.0986784147669214,6.24869230247883,28.29,27326,False,True,0.23371734601036614,2,SAFE,You're fine. Go touch grass.,False,,,,
+2020 BA5,       (2020 BA5),2100-08-12 13:39:00,2100,8,0.0860178771615612,3.5667180471748,24.3,27325,False,True,0.24635893703564996,2,SAFE,You're fine. Go touch grass.,False,,,,
+756476,756476 (2019 NC1),2100-07-29 04:11:00,2100,7,0.0942785464478976,4.23206112249953,21.4,27310,False,True,0.23314964743173222,2,SAFE,You're fine. Go touch grass.,False,,,,

@@ -1,0 +1,5 @@
+FILTER|year|>=|2024
+FILTER|year|<=|2026
+FILTER|threat_category|!=|SAFE
+FILTER|distance_au|<|0.05
+GROUP|threat_category|year
